@@ -1,0 +1,126 @@
+//////
+using System;
+using System.Windows.Forms;
+using MySql.Data.MySqlClient;
+
+namespace Login_28_10
+{
+    public partial class Form1 : Form
+    {
+        private string connectionString = "Server=localhost;Database=login_db;Uid=root;Pwd=;";
+
+        public Form1()
+        {
+            InitializeComponent();
+            txtPassword.UseSystemPasswordChar = true;
+            btnExit.Click += btnExit_Click;
+        }
+
+        private void btnLogin_Click(object? sender, EventArgs? e)
+        {
+            // Kiểm tra ErrorProvider trước, nếu không trống thì mới check DB
+            if (ValidateForm())
+            {
+                string username = txtUsername.Text.Trim();
+                string password = txtPassword.Text; // Giữ nguyên để check mật khẩu
+
+                if (VerifyLogin(username, password))
+                {
+                    MessageBox.Show("Đăng nhập thành công vào hệ thống!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    // Bạn có thể mở Form chính ở đây: FormMain main = new FormMain(); main.Show(); this.Hide();
+                }
+                else
+                {
+                    MessageBox.Show("Tên đăng nhập hoặc Mật khẩu không chính xác!", "Lỗi đăng nhập", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
+
+        // 3. Hàm kết nối và kiểm tra tài khoản trong MySQL
+        private bool VerifyLogin(string username, string password)
+        {
+            bool isSuccess = false;
+
+            // Câu lệnh truy vấn SQL (Sử dụng Parameter để chống tấn công SQL Injection)
+            string query = "SELECT COUNT(*) FROM users WHERE username = @username AND password = @password";
+
+            using (MySqlConnection conn = new MySqlConnection(connectionString))
+            {
+                try
+                {
+                    conn.Open(); // Mở kết nối
+
+                    using (MySqlCommand cmd = new MySqlCommand(query, conn))
+                    {
+                        // Gán giá trị vào tham số
+                        cmd.Parameters.AddWithValue("@username", username);
+                        cmd.Parameters.AddWithValue("@password", password);
+
+                        // Thực thi và lấy số lượng dòng khớp dữ liệu
+                        int count = Convert.ToInt32(cmd.ExecuteScalar());
+
+                        if (count > 0)
+                        {
+                            isSuccess = true;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Hiển thị lỗi nếu không kết nối được XAMPP
+                    MessageBox.Show("Lỗi kết nối cơ sở dữ liệu: " + ex.Message, "Lỗi Hệ Thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+
+            return isSuccess;
+        }
+private void btnExit_Click(object? sender, EventArgs? e)
+        {
+            Application.Exit();
+        }
+
+        private void checkBox1_CheckedChanged(object? sender, EventArgs? e)
+        {
+            txtPassword.UseSystemPasswordChar = !chkShowPassword.Checked;
+        }
+
+        private void txtPassword_TextChanged(object? sender, EventArgs? e)
+        {
+            if (!string.IsNullOrWhiteSpace(txtPassword.Text))
+            {
+                errorProvider.SetError(txtPassword, string.Empty);
+            }
+        }
+
+        private bool ValidateForm()
+        {
+            bool isValid = true;
+
+            if (string.IsNullOrWhiteSpace(txtUsername.Text))
+            {
+                errorProvider.SetError(txtUsername, "Tên đăng nhập không được để trống!");
+                isValid = false;
+            }
+            else
+            {
+                errorProvider.SetError(txtUsername, string.Empty);
+            }
+
+            if (string.IsNullOrWhiteSpace(txtPassword.Text))
+            {
+                errorProvider.SetError(txtPassword, "Mật khẩu không được để trống!");
+                isValid = false;
+            }
+            else
+            {
+                errorProvider.SetError(txtPassword, string.Empty);
+            }
+
+            return isValid;
+        }
+        private void Form1_Load(object? sender, EventArgs? e)
+        {
+
+        }
+    }
+}
