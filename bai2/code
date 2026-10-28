@@ -1,0 +1,54 @@
+ string connectionString = "Server=localhost;Database=hocvien_db;Uid=root;Pwd=;";
+            string query = "INSERT INTO registrations (phone, birthdate, gender, course_id) VALUES (@phone, @birthdate, @gender, @course_id)";
+
+            using (MySqlConnection conn = new MySqlConnection(connectionString))
+            {
+                try
+                {
+                    conn.Open();
+                    using (MySqlCommand cmd = new MySqlCommand(query, conn))
+                    {
+                        // Gán tham số chống SQL Injection
+                        cmd.Parameters.AddWithValue("@phone", phone);
+                        cmd.Parameters.AddWithValue("@birthdate", birthDateForDB);
+                        cmd.Parameters.AddWithValue("@gender", gender);
+                        cmd.Parameters.AddWithValue("@course_id", selectedCourseValue);
+
+                        // Thực thi câu lệnh Insert
+                        int rowsAffected = cmd.ExecuteNonQuery();
+
+                        if (rowsAffected > 0)
+                        {
+                            // 4. Nếu lưu DB thành công thì mới thông báo cho người dùng
+                            string info = $"--- ĐĂNG KÝ THÀNH CÔNG & ĐÃ LƯU DATABASE ---\n\n" +
+                                          $"+ Số điện thoại: {phone}\n" +
+                                          $"+ Ngày sinh: {birthDateForShow}\n" +
+                                          $"+ Giới tính: {gender}\n" +
+                                          $"+ Khóa học: {selectedCourseText} (Mã: {selectedCourseValue})";
+
+                            MessageBox.Show(info, "Kết Quả Đăng Ký", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Lỗi lưu cơ sở dữ liệu: " + ex.Message, "Lỗi Hệ Thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
+        private void chkAgree_CheckedChanged(object? sender, EventArgs? e)
+        {
+        }
+
+        private void maskedTextBox1_MaskInputRejected(object? sender, MaskInputRejectedEventArgs? e)
+        {
+            
+        }
+
+        private void radFemale_CheckedChanged(object? sender, EventArgs? e)
+        {
+           
+        }
+
+    }
+}
